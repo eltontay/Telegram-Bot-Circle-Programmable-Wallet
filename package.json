@@ -1,0 +1,19 @@
+{
+  "name": "telegram-circle-wallet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "@circle-fin/developer-controlled-wallets": "^1.0.0",
+    "@circle-fin/smart-contract-platform": "^1.0.0",
+    "dotenv": "^16.4.1",
+    "node-telegram-bot-api": "^0.64.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
