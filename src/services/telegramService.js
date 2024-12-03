@@ -5,6 +5,7 @@ const circleService = require('./circleService');
 class TelegramService {
   constructor() {
     this.bot = new TelegramBot(config.telegram.botToken, { polling: true });
+    this.walletStore = {}; // In-memory store for wallet information
     this.setupCommands();
   }
 
@@ -32,8 +33,11 @@ class TelegramService {
     try {
       await this.bot.sendMessage(chatId, 'Creating your wallet...');
 
-      const wallet = await circleService.createWallet(userId);
-      const address = wallet.data.wallets[0].address;
+      const { walletId, walletData } = await circleService.createWallet(userId);
+      const address = walletData.data.wallets[0].address;
+
+      // Store the wallet information in the in-memory store
+      this.walletStore[userId] = { walletId, address };
 
       const message =
         `✅ Wallet created successfully!\n\n` +
@@ -54,10 +58,14 @@ class TelegramService {
     const userId = msg.from.id.toString();
 
     try {
-      const wallet = await circleService.createWallet(userId);
-      const balance = await circleService.getWalletBalance(
-        wallet.data.walletId
-      );
+      // Retrieve the existing wallet information from the in-memory store
+      const walletInfo = this.walletStore[userId];
+      if (!walletInfo) {
+        throw new Error('No wallet found for the user. Please create a wallet first.');
+      }
+
+      console.log("wallet info wallet id" , walletInfo.walletId);
+      const balance = await circleService.getWalletBalance(walletInfo.walletId);
 
       const message =
         `💰 Wallet Balance:\n\n` +
@@ -66,6 +74,7 @@ class TelegramService {
 
       await this.bot.sendMessage(chatId, message);
     } catch (error) {
+      console.error('Error fetching balance:', error); // Log the error for debugging
       await this.bot.sendMessage(
         chatId,
         '❌ Error fetching balance. Please try again later.'

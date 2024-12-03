@@ -6,6 +6,7 @@ const {
 } = require('@circle-fin/smart-contract-platform');
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config');
+const axios = require('axios');
 
 class CircleService {
   constructor() {
@@ -27,7 +28,8 @@ class CircleService {
         accountType: 'SCA',
         walletSetId: walletSetResponse.data?.walletSet?.id ?? '',
       });
-      return walletData;
+      const walletId = walletData.data.wallets[0].id;
+      return { walletId, walletData };
     } catch (error) {
       console.error('Error creating wallet:', error);
       throw error;
@@ -36,16 +38,22 @@ class CircleService {
 
   async getWalletBalance(walletId) {
     try {
-      const balances = await this.platformSDK.getBalances({
-        walletId,
-        blockchain: config.network.name,
-      });
+      const response = await axios.get(
+        `https://api.circle.com/v1/w3s/wallets/${walletId}/balances`,
+        {
+          headers: {
+            Authorization: `Bearer ${config.circle.apiKey}`,
+          },
+        }
+      );
+
+      const balances = response.data.data.tokenBalances;
 
       // Filter and format balances
       const ethBalance =
-        balances.data.find((b) => b.tokenId === null)?.amount || '0';
+        balances.find((b) => b.token.isNative)?.amount || '0';
       const usdcBalance =
-        balances.data.find((b) => b.tokenId === config.network.usdcTokenId)
+        balances.find((b) => b.token.id === config.network.usdcTokenId)
           ?.amount || '0';
 
       return {
@@ -53,28 +61,7 @@ class CircleService {
         usdc: usdcBalance,
       };
     } catch (error) {
-      console.error('Error getting wallet balance:', error);
-      throw error;
-    }
-  }
-
-  async getWalletAddress(walletId) {
-    try {
-      const wallet = await this.walletSDK.getWallet({
-        walletId,
-      });
-
-      const address = wallet.data.addresses.find(
-        (addr) => addr.blockchain === config.network.name
-      )?.address;
-
-      if (!address) {
-        throw new Error('No address found for the specified blockchain');
-      }
-
-      return address;
-    } catch (error) {
-      console.error('Error getting wallet address:', error);
+      console.error('Error getting wallet balance:', error); // Log the error for debugging
       throw error;
     }
   }
