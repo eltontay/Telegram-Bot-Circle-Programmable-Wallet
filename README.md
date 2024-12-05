@@ -14,6 +14,7 @@ A Telegram bot that creates and manages developer-controlled wallets using Circl
 
 - [Circle W3S Node.js SDK Documentation](https://developers.circle.com/w3s/nodejs-sdk)
 - [Circle API Reference](https://developers.circle.com/api-reference)
+- [Replit.com](https://replit.com/t/circle-developer/repls/telegram-bot-circle-programmable-wallet/)
 
 ## Prerequisites
 
