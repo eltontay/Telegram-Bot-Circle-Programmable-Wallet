@@ -11,7 +11,7 @@ class TelegramService {
 
   setupCommands() {
     this.bot.onText(/\/start/, this.handleStart.bind(this));
-    this.bot.onText(/\/createwallet/, this.handleCreateWallet.bind(this));
+    this.bot.onText(/\/createWallet/, this.handleCreateWallet.bind(this));
     this.bot.onText(/\/balance/, this.handleBalance.bind(this));
   }
 
@@ -20,7 +20,7 @@ class TelegramService {
     const message =
       `Welcome to Circle Wallet Bot! 🚀\n\n` +
       `Available commands:\n` +
-      `/createwallet - Create a new wallet\n` +
+      `/createWallet - Create a new wallet\n` +
       `/balance - Check your wallet balance`;
 
     await this.bot.sendMessage(chatId, message);

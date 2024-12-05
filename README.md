@@ -65,7 +65,7 @@ You can modify these values in the .env file if needed.
 1. Start a chat with your bot on Telegram
 2. Available commands:
    - `/start` - Display welcome message and available commands
-   - `/createwallet` - Create a new SCA wallet
+   - `/createWallet` - Create a new SCA wallet
    - `/balance` - Check your wallet's ETH and USDC balance
 
 ## Security Considerations
