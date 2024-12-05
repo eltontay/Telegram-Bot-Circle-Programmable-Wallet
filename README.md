@@ -1,95 +1,115 @@
 # Telegram Circle Wallet Bot
 
-A Telegram bot that creates and manages developer-controlled wallets using Circle's SDK. This bot allows users to create SCA (Smart Contract Account) wallets on the ARB-SEPOLIA network and check their ETH and USDC balances.
+A Telegram bot that creates and manages developer-controlled wallets using Circle's SDK. This bot allows users to create SCA (Smart Contract Account) wallets on various networks and check their ETH and USDC balances.
 
 ## Features
 
-- Create SCA wallets on ARB-SEPOLIA network
+- Create SCA wallets on multiple networks
 - View wallet address
 - Check ETH (native token) balance
 - Check USDC balance
 - Secure storage of sensitive credentials
 
+## Documentation & Resources
+
+- [Circle W3S Node.js SDK Documentation](https://developers.circle.com/w3s/nodejs-sdk)
+- [Circle API Reference](https://developers.circle.com/api-reference)
+
 ## Prerequisites
 
 - Node.js v16 or higher
-- Circle API Key and Entity Secret
+- Circle API Key and Entity Secret (Get started at [Circle Developer Console](https://console.circle.com))
 - Telegram Bot Token (obtain from [@BotFather](https://t.me/BotFather))
 
 ## Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/eltontay/telegram-bot-circle-programmable-wallet.git
-   cd telegram-bot-circle-programmable-wallet
-   ```
+
+```bash
+git clone https://github.com/eltontay/telegram-bot-circle-programmable-wallet.git
+cd telegram-bot-circle-programmable-wallet
+```
 
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
+
+```bash
+npm install
+```
 
 3. Create a .env file:
-   ```bash
-   cp .env.sample .env
-   ```
+
+```bash
+cp .env.sample .env
+```
 
 4. Configure your environment variables in the .env file:
-   - Add your Circle API Key
-   - Add your Circle Entity Secret
-   - Add your Telegram Bot Token
+- Add your Circle API Key
+- Add your Circle Entity Secret
+- Add your Telegram Bot Token
 
-## Configuration
+## Supported Networks 
 
-The bot is configured to use:
-- Network: ARB-SEPOLIA
-- USDC Token Address: 0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d
-- USDC Token ID: 4b8daacc-5f47-5909-a3ba-30d171ebad98
+### Mainnet Networks
+- Arbitrum (ARB)
+- Polygon (POL)
+- Avalanche (AVAX)
+- Solana (SOL)
+- Ethereum (ETH)
 
-You can modify these values in the .env file if needed.
+### Testnet Networks
+- Arbitrum Sepolia (ARB-SEPOLIA)
+- Polygon Amoy (MATIC-AMOY)
+- Avalanche Fuji (AVAX-FUJI)
+- Solana Devnet (SOL-DEVNET)
+- Ethereum Sepolia (ETH-SEPOLIA)
 
-## Running the Bot
+## Network Configurations
 
-1. Start the bot:
-   ```bash
-   npm start
-   ```
+The bot supports multiple networks with their respective USDC contract addresses and token IDs. All network configurations are stored in `data/networks.json`.
 
-2. For development with auto-reload:
-   ```bash
-   npm run dev
-   ```
+### Structure
+```json
+{
+  "NETWORK_NAME": {
+    "name": "NETWORK_NAME",
+    "usdcAddress": "USDC_CONTRACT_ADDRESS",
+    "usdcTokenId": "CIRCLE_USDC_TOKEN_ID",
+    "isTestnet": boolean
+  }
+}
+```
 
-## Usage
+### Each network entry contains:
+- USDC smart contract address
+- Circle's USDC token ID
+- Network type (mainnet/testnet)
 
-1. Start a chat with your bot on Telegram
-2. Available commands:
-   - `/start` - Display welcome message and available commands
-   - `/createWallet` - Create a new SCA wallet
-   - `/balance` - Check your wallet's ETH and USDC balance
+You can configure your preferred network in the .env file:
 
-## Security Considerations
+```bash
+NETWORK=ARB-SEPOLIA  # Default network
+USDC_TOKEN_ADDRESS=0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d
+USDC_TOKEN_ID=4b8daacc-5f47-5909-a3ba-30d171ebad98
+```
 
-- Never commit your .env file
-- Keep your Circle API Key and Entity Secret secure
-- Regularly rotate your credentials
-- Monitor wallet activities for suspicious transactions
+## Getting Testnet Tokens
+To obtain testnet USDC for testing:
 
-## Error Handling
+- Visit the [Circle Faucet](https://faucet.circle.com/)
+- Connect your wallet
+- Select the desired testnet network
+- Request testnet USDC
 
-The bot includes basic error handling for:
-- Wallet creation failures
-- Balance check errors
-- Network connectivity issues
+## For native tokens (ETH, POL, etc.), use the respective network faucets:
 
-## Contributing
+- [Arbitrum Sepolia Faucet](https://www.alchemy.com/faucets/arbitrum-sepolia)
+- [Polygon Amoy Faucet](https://faucet.polygon.technology/)
+- [Avalanche Fuji Faucet](https://faucet.avax.network/)
+- [Solana Devnet Faucet](https://faucet.solana.com/)
+- [Ethereum Sepolia Faucet](https://sepoliafaucet.com/)
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+## Community
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+Join the Circle Developer Community:
+- [Discord](https://discord.gg/buildoncircle)
+- [X](https://x.com/BuildOnCircle)
