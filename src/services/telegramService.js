@@ -76,10 +76,7 @@ class TelegramService {
 
       const balance = await circleService.getWalletBalance(walletInfo.walletId);
 
-      const message =
-        `💰 Wallet Balance:\n\n` +
-        `ETH: ${balance.eth}\n` +
-        `USDC: ${balance.usdc}`;
+      const message = `💰 Wallet Balance:\n\n` + `USDC: ${balance.usdc}`;
 
       await this.bot.sendMessage(chatId, message);
     } catch (error) {

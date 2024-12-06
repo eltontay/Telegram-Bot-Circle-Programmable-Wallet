@@ -1,12 +1,12 @@
 const {
   initiateDeveloperControlledWalletsClient,
-} = require('@circle-fin/developer-controlled-wallets');
+} = require("@circle-fin/developer-controlled-wallets");
 const {
   SmartContractPlatformSDK,
-} = require('@circle-fin/smart-contract-platform');
-const { v4: uuidv4 } = require('uuid');
-const config = require('../config');
-const axios = require('axios');
+} = require("@circle-fin/smart-contract-platform");
+const { v4: uuidv4 } = require("uuid");
+const config = require("../config");
+const axios = require("axios");
 
 class CircleService {
   constructor() {
@@ -19,19 +19,19 @@ class CircleService {
   async createWallet(userId) {
     try {
       const walletSetResponse = await this.walletSDK.createWalletSet({
-        name: 'WalletSet 1',
+        name: "WalletSet 1",
       });
 
       const walletData = await this.walletSDK.createWallets({
         idempotencyKey: uuidv4(),
         blockchains: [config.network.name],
-        accountType: 'SCA',
-        walletSetId: walletSetResponse.data?.walletSet?.id ?? '',
+        accountType: "SCA",
+        walletSetId: walletSetResponse.data?.walletSet?.id ?? "",
       });
       const walletId = walletData.data.wallets[0].id;
       return { walletId, walletData };
     } catch (error) {
-      console.error('Error creating wallet:', error);
+      console.error("Error creating wallet:", error);
       throw error;
     }
   }
@@ -44,24 +44,21 @@ class CircleService {
           headers: {
             Authorization: `Bearer ${config.circle.apiKey}`,
           },
-        }
+        },
       );
 
       const balances = response.data.data.tokenBalances;
 
       // Filter and format balances
-      const ethBalance =
-        balances.find((b) => b.token.isNative)?.amount || '0';
       const usdcBalance =
         balances.find((b) => b.token.id === config.network.usdcTokenId)
-          ?.amount || '0';
+          ?.amount || "0";
 
       return {
-        eth: ethBalance,
         usdc: usdcBalance,
       };
     } catch (error) {
-      console.error('Error getting wallet balance:', error); // Log the error for debugging
+      console.error("Error getting wallet balance:", error); // Log the error for debugging
       throw error;
     }
   }
