@@ -62,6 +62,27 @@ class CircleService {
       throw error;
     }
   }
+
+  async sendTransaction(walletId, destinationAddress, amount) {
+    try {
+      const response = await this.walletSDK.createTransaction({
+        walletId: walletId,
+        tokenId: config.network.usdcTokenId,
+        destinationAddress: destinationAddress,
+        amounts: [amount],
+        fee: {
+          type: "level",
+          config: {
+            feeLevel: "LOW",
+          },
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error sending transaction:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new CircleService();

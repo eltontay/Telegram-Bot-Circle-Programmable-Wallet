@@ -13,6 +13,8 @@ class TelegramService {
     this.bot.onText(/\/start/, this.handleStart.bind(this));
     this.bot.onText(/\/createWallet/, this.handleCreateWallet.bind(this));
     this.bot.onText(/\/balance/, this.handleBalance.bind(this));
+    this.bot.onText(/\/send (.+)/, this.handleSend.bind(this));
+    this.bot.onText(/\/address/, (msg) => this.handleAddress(msg));
   }
 
   async handleStart(msg) {
@@ -62,6 +64,30 @@ class TelegramService {
     }
   }
 
+  async handleAddress(msg) {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    try {
+      const walletInfo = storageService.getWallet(userId);
+      if (!walletInfo) {
+        throw new Error(
+          "No wallet found. Please create a wallet first using /create",
+        );
+      }
+      const message =
+        `🔑 Your Wallet Address:\n\n` +
+        `\`${walletInfo.address}\`\n\n` +
+        `Network: ${config.network.name}`;
+      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      await this.bot.sendMessage(
+        chatId,
+        `❌ Error: ${error.message || "Failed to fetch address. Please try again later."}`,
+      );
+    }
+  }
+
   async handleBalance(msg) {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
@@ -84,6 +110,41 @@ class TelegramService {
       await this.bot.sendMessage(
         chatId,
         "❌ Error fetching balance. Please try again later.",
+      );
+    }
+  }
+
+  async handleSend(msg, match) {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    try {
+      const walletInfo = storageService.getWallet(userId);
+      if (!walletInfo) {
+        throw new Error("No wallet found. Please create a wallet first.");
+      }
+      const params = match[1].split(" ");
+      if (params.length !== 2) {
+        throw new Error("Invalid format. Use: /send <address> <amount>");
+      }
+      const [destinationAddress, amount] = params;
+      await this.bot.sendMessage(chatId, "Processing transaction...");
+      const txResponse = await circleService.sendTransaction(
+        walletInfo.walletId,
+        destinationAddress,
+        amount,
+      );
+      const message =
+        `✅ Transaction submitted!\n\n` +
+        `Amount: ${amount} USDC\n` +
+        `To: ${destinationAddress}\n` +
+        `Transaction ID: ${txResponse.id}`; // SDK returns id in the response
+
+      await this.bot.sendMessage(chatId, message);
+    } catch (error) {
+      console.error("Error sending transaction:", error);
+      await this.bot.sendMessage(
+        chatId,
+        `❌ Error: ${error.message || "Failed to send transaction. Please try again later."}`,
       );
     }
   }

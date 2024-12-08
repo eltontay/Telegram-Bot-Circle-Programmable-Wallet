@@ -10,7 +10,19 @@ A Telegram bot that creates and manages developer-controlled wallets using Circl
 - View wallet address
 - Check ETH (native token) balance
 - Check USDC balance
+- Send USDC transactions to other addresses
 - Secure storage of sensitive credentials
+
+## Bot Commands
+- `/start` - Initialize the bot and get welcome message
+- `/createWallet` - Create a new wallet
+- `/address` - Get your wallet address
+- `/balance` - Check your wallet's USDC balance
+- `/send <address> <amount>` - Send USDC to another address
+  - Example: `/send 0x742d35Cc6634C0532925a3b844Bc454e4438f44e 10`
+  - The amount is in USDC
+  - Transaction fees are automatically set to LOW level
+  - Make sure you have sufficient USDC and native tokens for gas
 
 ## Documentation & Resources
 
