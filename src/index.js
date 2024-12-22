@@ -7,6 +7,7 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+process.env.NTBA_FIX_319 = 1;
 let isShuttingDown = false;
 
 process.on('SIGTERM', () => {

@@ -11,9 +11,13 @@ class TelegramService {
         polling: {
           autoStart: true,
           params: {
-            timeout: 10
+            timeout: 10,
+            limit: 100,
+            allowed_updates: ['message']
           }
-        }
+        },
+        baseApiUrl: "https://api.telegram.org",
+        filepath: false
       });
       this.setupCommands();
       this.bot.on('polling_error', (error) => {
