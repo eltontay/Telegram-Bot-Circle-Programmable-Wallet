@@ -15,6 +15,7 @@ class TelegramService {
     this.bot.onText(/\/balance/, this.handleBalance.bind(this));
     this.bot.onText(/\/send (.+)/, this.handleSend.bind(this));
     this.bot.onText(/\/address/, (msg) => this.handleAddress(msg));
+    this.bot.onText(/\/walletId/, this.handleWalletId.bind(this));
   }
 
   async handleStart(msg) {
@@ -25,6 +26,7 @@ class TelegramService {
       `/createWallet - Create a new SCA wallet\n` +
       `/balance - Check your wallet's USDC balance\n` +
       `/address - Get your wallet address\n` +
+      `/walletId - Get your wallet ID\n` +
       `/send <address> <amount> - Send USDC to another address\n\n` +
       `Example of send command:\n` +
       `/send 0x742d35Cc6634C0532925a3b844Bc454e4438f44e 10`;
@@ -145,6 +147,24 @@ class TelegramService {
 
       await this.bot.sendMessage(chatId, message);
     } catch (error) {
+
+  async handleWalletId(msg) {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    try {
+      const walletInfo = storageService.getWallet(userId);
+      if (!walletInfo) {
+        throw new Error("No wallet found. Please create a wallet first using /createWallet");
+      }
+      const message = `🔑 Your Wallet ID:\n\n\`${walletInfo.walletId}\`\n\nNetwork: ${config.network.name}`;
+      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+    } catch (error) {
+      console.error("Error fetching wallet ID:", error);
+      await this.bot.sendMessage(chatId, `❌ Error: ${error.message || "Failed to fetch wallet ID. Please try again later."}`);
+    }
+  }
+
+
       console.error("Error sending transaction:", error);
       await this.bot.sendMessage(
         chatId,
