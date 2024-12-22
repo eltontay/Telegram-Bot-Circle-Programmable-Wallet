@@ -83,6 +83,23 @@ class CircleService {
       throw error;
     }
   }
+
+  async getWalletId(address) {
+    try {
+      const response = await axios.get(
+        `https://api.circle.com/v1/w3s/wallets?address=${address}`,
+        {
+          headers: {
+            Authorization: `Bearer ${config.circle.apiKey}`,
+          },
+        }
+      );
+      return response.data.data.wallets[0]?.id;
+    } catch (error) {
+      console.error("Error retrieving wallet ID:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new CircleService();
