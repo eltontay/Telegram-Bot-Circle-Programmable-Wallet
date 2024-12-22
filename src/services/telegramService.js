@@ -10,6 +10,12 @@ class TelegramService {
     this.setupCommands();
   }
 
+  stop() {
+    if (this.bot) {
+      this.bot.stopPolling();
+    }
+  }
+
   setupCommands() {
     this.bot.onText(/\/start/, this.handleStart.bind(this));
     this.bot.onText(/\/createWallet/, this.handleCreateWallet.bind(this));

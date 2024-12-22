@@ -7,6 +7,16 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+let isShuttingDown = false;
+
+process.on('SIGTERM', () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log('Received SIGTERM. Gracefully shutting down...');
+  telegramService.stop();
+  server.close();
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Telegram Circle Wallet Bot is running on port ${PORT}...`);
 });
