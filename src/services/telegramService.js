@@ -6,8 +6,27 @@ const storageService = require("./storageService");
 
 class TelegramService {
   constructor() {
-    this.bot = new TelegramBot(config.telegram.botToken, { polling: true });
-    this.setupCommands();
+    try {
+      this.bot = new TelegramBot(config.telegram.botToken, {
+        polling: {
+          autoStart: true,
+          params: {
+            timeout: 10
+          }
+        }
+      });
+      this.setupCommands();
+      this.bot.on('polling_error', (error) => {
+        console.error('Polling error:', error.code);
+        if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
+          this.stop();
+          process.exit(1);
+        }
+      });
+    } catch (error) {
+      console.error('Bot initialization error:', error);
+      process.exit(1);
+    }
   }
 
   stop() {
