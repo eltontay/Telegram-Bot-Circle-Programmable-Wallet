@@ -17,6 +17,7 @@ A Telegram bot that creates and manages developer-controlled wallets using Circl
 - `/start` - Initialize the bot and get welcome message
 - `/createWallet` - Create a new wallet
 - `/address` - Get your wallet address
+- `/walletId` - Get your wallet ID
 - `/balance` - Check your wallet's USDC balance
 - `/send <address> <amount>` - Send USDC to another address
   - Example: `/send 0x742d35Cc6634C0532925a3b844Bc454e4438f44e 10`

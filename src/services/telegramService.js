@@ -21,7 +21,7 @@ class TelegramService {
 
   async handleStart(msg) {
     const chatId = msg.chat.id;
-    const message = `Welcome to Circle Wallet Bot!\n\nCommands:\n/createWallet - Create a wallet\n/address - Get wallet address\n/balance - Check USDC balance\n/send <address> <amount> - Send USDC`;
+    const message = `Welcome to Circle Wallet Bot!\n\nCommands:\n/createWallet - Create a wallet\n/address - Get wallet address\n/walletId - Get wallet ID\n/balance - Check USDC balance\n/send <address> <amount> - Send USDC`;
     await this.bot.sendMessage(chatId, message);
   }
 
