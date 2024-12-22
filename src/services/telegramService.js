@@ -1,3 +1,4 @@
+
 const TelegramBot = require("node-telegram-bot-api");
 const config = require("../config");
 const circleService = require("./circleService");
@@ -38,7 +39,6 @@ class TelegramService {
     const userId = msg.from.id.toString();
 
     try {
-      // Check if wallet already exists
       const existingWallet = storageService.getWallet(userId);
       if (existingWallet) {
         return await this.bot.sendMessage(
@@ -53,7 +53,6 @@ class TelegramService {
       const { walletId, walletData } = await circleService.createWallet(userId);
       const address = walletData.data.wallets[0].address;
 
-      // Store the wallet information persistently
       storageService.saveWallet(userId, { walletId, address });
 
       const message =
@@ -143,10 +142,17 @@ class TelegramService {
         `✅ Transaction submitted!\n\n` +
         `Amount: ${amount} USDC\n` +
         `To: ${destinationAddress}\n` +
-        `Transaction ID: ${txResponse.id}`; // SDK returns id in the response
+        `Transaction ID: ${txResponse.id}`;
 
       await this.bot.sendMessage(chatId, message);
     } catch (error) {
+      console.error("Error sending transaction:", error);
+      await this.bot.sendMessage(
+        chatId,
+        `❌ Error: ${error.message || "Failed to send transaction. Please try again later."}`,
+      );
+    }
+  }
 
   async handleWalletId(msg) {
     const chatId = msg.chat.id;
@@ -161,15 +167,6 @@ class TelegramService {
     } catch (error) {
       console.error("Error fetching wallet ID:", error);
       await this.bot.sendMessage(chatId, `❌ Error: ${error.message || "Failed to fetch wallet ID. Please try again later."}`);
-    }
-  }
-
-
-      console.error("Error sending transaction:", error);
-      await this.bot.sendMessage(
-        chatId,
-        `❌ Error: ${error.message || "Failed to send transaction. Please try again later."}`,
-      );
     }
   }
 }
