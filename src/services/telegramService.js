@@ -102,7 +102,7 @@ class TelegramService {
 
       const [_, destinationAddress, amount] = match[1].split(' ');
       if (!destinationAddress || !amount) {
-        await this.bot.sendMessage(chatId, "Format: /send <address> <amount>");
+        await this.bot.sendMessage(chatId, "Invalid transaction. Please provide both address and amount.");
         return;
       }
 
