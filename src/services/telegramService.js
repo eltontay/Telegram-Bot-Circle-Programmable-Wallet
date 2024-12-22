@@ -35,7 +35,8 @@ class TelegramService {
 
   stop() {
     if (this.bot) {
-      this.bot.stopPolling();
+      this.bot.stopPolling({cancel: true});
+      this.bot = null;
     }
   }
 

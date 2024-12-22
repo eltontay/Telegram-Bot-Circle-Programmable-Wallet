@@ -18,6 +18,14 @@ process.on('SIGTERM', () => {
   server.close();
 });
 
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error('Port is already in use. Trying to close...');
+    telegramService.stop();
+    process.exit(1);
+  }
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Telegram Circle Wallet Bot is running on port ${PORT}...`);
 });
