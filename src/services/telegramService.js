@@ -1,4 +1,3 @@
-
 const TelegramBot = require("node-telegram-bot-api");
 const config = require("../config");
 const circleService = require("./circleService");
@@ -39,37 +38,52 @@ class TelegramService {
       const { walletId, walletData } = await circleService.createWallet(userId);
       const address = walletData.data.wallets[0].address;
       storageService.saveWallet(userId, { walletId, address });
-      await this.bot.sendMessage(chatId, `Wallet created!\nAddress: ${address}`);
+      await this.bot.sendMessage(
+        chatId,
+        `Wallet created!\nAddress: ${address}`,
+      );
     } catch (error) {
-      await this.bot.sendMessage(chatId, "Error creating wallet. Try again later.");
+      await this.bot.sendMessage(
+        chatId,
+        "Error creating wallet. Try again later.",
+      );
     }
   }
 
   async handleBalance(msg) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    
+
     try {
       const wallet = storageService.getWallet(userId);
       if (!wallet) {
-        await this.bot.sendMessage(chatId, "Create a wallet first with /createWallet");
+        await this.bot.sendMessage(
+          chatId,
+          "Create a wallet first with /createWallet",
+        );
         return;
       }
 
       const balance = await circleService.getWalletBalance(wallet.walletId);
       await this.bot.sendMessage(chatId, `USDC Balance: ${balance.usdc} USDC`);
     } catch (error) {
-      await this.bot.sendMessage(chatId, "Error getting balance. Try again later.");
+      await this.bot.sendMessage(
+        chatId,
+        "Error getting balance. Try again later.",
+      );
     }
   }
 
   async handleAddress(msg) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    
+
     const wallet = storageService.getWallet(userId);
     if (!wallet) {
-      await this.bot.sendMessage(chatId, "Create a wallet first with /createWallet");
+      await this.bot.sendMessage(
+        chatId,
+        "Create a wallet first with /createWallet",
+      );
       return;
     }
 
@@ -79,10 +93,13 @@ class TelegramService {
   async handleWalletId(msg) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    
+
     const wallet = storageService.getWallet(userId);
     if (!wallet) {
-      await this.bot.sendMessage(chatId, "Create a wallet first with /createWallet");
+      await this.bot.sendMessage(
+        chatId,
+        "Create a wallet first with /createWallet",
+      );
       return;
     }
 
@@ -91,25 +108,36 @@ class TelegramService {
 
   async handleSend(msg, match) {
     const chatId = msg.chat.id;
-    const userId = msg.from.id;
-    
+    const userId = msg.from.id.toString();
     try {
-      const wallet = storageService.getWallet(userId);
-      if (!wallet) {
-        await this.bot.sendMessage(chatId, "Create a wallet first with /createWallet");
-        return;
+      const walletInfo = storageService.getWallet(userId);
+      if (!walletInfo) {
+        throw new Error("No wallet found. Please create a wallet first.");
       }
-
-      const [_, destinationAddress, amount] = match[1].split(' ');
-      if (!destinationAddress || !amount) {
-        await this.bot.sendMessage(chatId, "Invalid transaction. Please provide both address and amount.");
-        return;
+      const params = match[1].split(" ");
+      if (params.length !== 2) {
+        throw new Error("Invalid format. Use: /send <address> <amount>");
       }
+      const [destinationAddress, amount] = params;
+      await this.bot.sendMessage(chatId, "Processing transaction...");
+      const txResponse = await circleService.sendTransaction(
+        walletInfo.walletId,
+        destinationAddress,
+        amount,
+      );
+      const message =
+        `✅ Transaction submitted!\n\n` +
+        `Amount: ${amount} USDC\n` +
+        `To: ${destinationAddress}\n` +
+        `Transaction ID: ${txResponse.id}`;
 
-      const transaction = await circleService.sendTransaction(wallet.walletId, destinationAddress, amount);
-      await this.bot.sendMessage(chatId, `Transaction sent!\nID: ${transaction.transaction.id}`);
+      await this.bot.sendMessage(chatId, message);
     } catch (error) {
-      await this.bot.sendMessage(chatId, "Error sending transaction. Try again later.");
+      console.error("Error sending transaction:", error);
+      await this.bot.sendMessage(
+        chatId,
+        `❌ Error: ${error.message || "Failed to send transaction. Please try again later."}`,
+      );
     }
   }
 }
