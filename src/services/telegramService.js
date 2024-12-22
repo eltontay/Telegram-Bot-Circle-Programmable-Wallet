@@ -23,7 +23,11 @@ class TelegramService {
       `👋 Welcome to Circle Wallet Bot!\n\n` +
       `Available commands:\n` +
       `/createWallet - Create a new SCA wallet\n` +
-      `/balance - Check your wallet's ETH and USDC balance`;
+      `/balance - Check your wallet's USDC balance\n` +
+      `/address - Get your wallet address\n` +
+      `/send <address> <amount> - Send USDC to another address\n\n` +
+      `Example of send command:\n` +
+      `/send 0x742d35Cc6634C0532925a3b844Bc454e4438f44e 10`;
     await this.bot.sendMessage(chatId, message);
   }
 
