@@ -1,5 +1,9 @@
+
 const telegramService = require('./services/telegramService');
 const http = require('http');
+
+process.env.NTBA_FIX_319 = 1;
+let isShuttingDown = false;
 
 const server = http.createServer((req, res) => {
   res.writeHead(200);
@@ -7,22 +11,25 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-process.env.NTBA_FIX_319 = 1;
-let isShuttingDown = false;
 
 process.on('SIGTERM', () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
   console.log('Received SIGTERM. Gracefully shutting down...');
   telegramService.stop();
-  server.close();
+  server.close(() => {
+    process.exit(0);
+  });
 });
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error('Port is already in use. Trying to close...');
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  if (!isShuttingDown) {
+    isShuttingDown = true;
     telegramService.stop();
-    process.exit(1);
+    server.close(() => {
+      process.exit(1);
+    });
   }
 });
 

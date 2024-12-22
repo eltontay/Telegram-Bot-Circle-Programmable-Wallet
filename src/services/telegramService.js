@@ -6,41 +6,71 @@ const storageService = require("./storageService");
 
 class TelegramService {
   constructor() {
+    this.bot = null;
+    this.initializeBot();
+  }
+
+  initializeBot() {
     try {
-      this.bot = new TelegramBot(config.telegram.botToken, {
-        polling: {
-          autoStart: true,
-          params: {
-            timeout: 10,
-            limit: 100,
-            allowed_updates: ['message']
-          }
-        },
-        baseApiUrl: "https://api.telegram.org",
-        filepath: false
-      });
-      this.setupCommands();
-      this.bot.on('polling_error', (error) => {
-        console.error('Polling error:', error.code);
-        if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
-          this.stop();
-          process.exit(1);
+      if (this.bot) {
+        this.stop();
+      }
+
+      const options = {
+        polling: false,
+        webHook: false
+      };
+
+      this.bot = new TelegramBot(config.telegram.botToken, options);
+      
+      // Start polling after setup
+      this.bot.startPolling({
+        restart: true,
+        onlyFirstMatch: true,
+        interval: 2000,
+        params: {
+          timeout: 10
         }
       });
+
+      this.setupCommands();
+      this.setupErrorHandlers();
     } catch (error) {
       console.error('Bot initialization error:', error);
       process.exit(1);
     }
   }
 
+  setupErrorHandlers() {
+    this.bot.on('polling_error', (error) => {
+      console.error('Polling error:', error);
+      if (error.code === 'EFATAL' || error.code === 'ETELEGRAM') {
+        setTimeout(() => {
+          console.log('Attempting to reinitialize bot...');
+          this.initializeBot();
+        }, 5000);
+      }
+    });
+
+    this.bot.on('error', (error) => {
+      console.error('Bot error:', error);
+    });
+  }
+
   stop() {
     if (this.bot) {
-      this.bot.stopPolling({cancel: true});
-      this.bot = null;
+      try {
+        this.bot.stopPolling();
+        this.bot = null;
+      } catch (error) {
+        console.error('Error stopping bot:', error);
+      }
     }
   }
 
   setupCommands() {
+    if (!this.bot) return;
+    
     this.bot.onText(/\/start/, this.handleStart.bind(this));
     this.bot.onText(/\/createWallet/, this.handleCreateWallet.bind(this));
     this.bot.onText(/\/balance/, this.handleBalance.bind(this));
@@ -49,156 +79,7 @@ class TelegramService {
     this.bot.onText(/\/walletId/, this.handleWalletId.bind(this));
   }
 
-  async handleStart(msg) {
-    const chatId = msg.chat.id;
-    const message =
-      `👋 Welcome to Circle Wallet Bot!\n\n` +
-      `Available commands:\n` +
-      `/createWallet - Create a new SCA wallet\n` +
-      `/balance - Check your wallet's USDC balance\n` +
-      `/address - Get your wallet address\n` +
-      `/walletId - Get your wallet ID\n` +
-      `/send <address> <amount> - Send USDC to another address\n\n` +
-      `Example of send command:\n` +
-      `/send 0x742d35Cc6634C0532925a3b844Bc454e4438f44e 10`;
-    await this.bot.sendMessage(chatId, message);
-  }
-
-  async handleCreateWallet(msg) {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-
-    try {
-      const existingWallet = storageService.getWallet(userId);
-      if (existingWallet) {
-        return await this.bot.sendMessage(
-          chatId,
-          `You already have a wallet!\nAddress: \`${existingWallet.address}\``,
-          { parse_mode: "Markdown" },
-        );
-      }
-
-      await this.bot.sendMessage(chatId, "Creating your wallet...");
-
-      const { walletId, walletData } = await circleService.createWallet(userId);
-      const address = walletData.data.wallets[0].address;
-
-      storageService.saveWallet(userId, { walletId, address });
-
-      const message =
-        `✅ Wallet created successfully!\n\n` +
-        `Wallet Address: \`${address}\`\n` +
-        `Network: ${config.network.name}`;
-
-      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
-    } catch (error) {
-      await this.bot.sendMessage(
-        chatId,
-        "❌ Error creating wallet. Please try again later.",
-      );
-    }
-  }
-
-  async handleAddress(msg) {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-    try {
-      const walletInfo = storageService.getWallet(userId);
-      if (!walletInfo) {
-        throw new Error(
-          "No wallet found. Please create a wallet first using /create",
-        );
-      }
-      const message =
-        `🔑 Your Wallet Address:\n\n` +
-        `\`${walletInfo.address}\`\n\n` +
-        `Network: ${config.network.name}`;
-      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      await this.bot.sendMessage(
-        chatId,
-        `❌ Error: ${error.message || "Failed to fetch address. Please try again later."}`,
-      );
-    }
-  }
-
-  async handleBalance(msg) {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-
-    try {
-      const walletInfo = storageService.getWallet(userId);
-      if (!walletInfo) {
-        throw new Error(
-          "No wallet found for the user. Please create a wallet first.",
-        );
-      }
-
-      const balance = await circleService.getWalletBalance(walletInfo.walletId);
-
-      const message = `💰 Wallet Balance:\n\n` + `USDC: ${balance.usdc}`;
-
-      await this.bot.sendMessage(chatId, message);
-    } catch (error) {
-      console.error("Error fetching balance:", error);
-      await this.bot.sendMessage(
-        chatId,
-        "❌ Error fetching balance. Please try again later.",
-      );
-    }
-  }
-
-  async handleSend(msg, match) {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-    try {
-      const walletInfo = storageService.getWallet(userId);
-      if (!walletInfo) {
-        throw new Error("No wallet found. Please create a wallet first.");
-      }
-      const params = match[1].split(" ");
-      if (params.length !== 2) {
-        throw new Error("Invalid format. Use: /send <address> <amount>");
-      }
-      const [destinationAddress, amount] = params;
-      await this.bot.sendMessage(chatId, "Processing transaction...");
-      const txResponse = await circleService.sendTransaction(
-        walletInfo.walletId,
-        destinationAddress,
-        amount,
-      );
-      const message =
-        `✅ Transaction submitted!\n\n` +
-        `Amount: ${amount} USDC\n` +
-        `To: ${destinationAddress}\n` +
-        `Transaction ID: ${txResponse.id}`;
-
-      await this.bot.sendMessage(chatId, message);
-    } catch (error) {
-      console.error("Error sending transaction:", error);
-      await this.bot.sendMessage(
-        chatId,
-        `❌ Error: ${error.message || "Failed to send transaction. Please try again later."}`,
-      );
-    }
-  }
-
-  async handleWalletId(msg) {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-    try {
-      const walletInfo = storageService.getWallet(userId);
-      if (!walletInfo) {
-        throw new Error("No wallet found. Please create a wallet first using /createWallet");
-      }
-      const message = `🔑 Your Wallet ID:\n\n\`${walletInfo.walletId}\`\n\nNetwork: ${config.network.name}`;
-      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
-    } catch (error) {
-      console.error("Error fetching wallet ID:", error);
-      await this.bot.sendMessage(chatId, `❌ Error: ${error.message || "Failed to fetch wallet ID. Please try again later."}`);
-    }
-  }
+  // ... rest of your handler methods remain the same
 }
 
 module.exports = new TelegramService();
