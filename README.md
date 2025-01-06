@@ -130,7 +130,7 @@ To obtain testnet USDC for testing:
 - [Solana Devnet Faucet](https://faucet.solana.com/)
 - [Ethereum Sepolia Faucet](https://sepoliafaucet.com/)
 
-## Community
+### Community
 
 Join the Circle Developer Community:
 - [Discord](https://discord.gg/buildoncircle)
