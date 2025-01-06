@@ -52,16 +52,16 @@ cd telegram-bot-circle-programmable-wallet
 npm install
 ```
 
-3. Create a .env file:
+3. Add your secrets to Replit's Secret Manager or set them as environment variables:
 
 ```bash
 cp .env.sample .env
 ```
 
 4. Configure your environment variables in the .env file:
-- Add your Circle API Key
-- Add your Circle Entity Secret
-- Add your Telegram Bot Token
+- CIRCLE_API_KEY=your_circle_api_key_here
+- CIRCLE_ENTITY_SECRET=your_circle_entity_secret_here
+- TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 
 5. Run server
 
