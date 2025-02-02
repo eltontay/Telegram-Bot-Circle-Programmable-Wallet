@@ -1,6 +1,6 @@
 # Telegram Circle Wallet Bot
 
-A Telegram bot that creates and manages developer-controlled wallets using Circle's SDK. This bot allows users to create SCA (Smart Contract Account) wallets on various networks and check their USDC balances.
+A Telegram bot that creates and manages developer-controlled wallets using Circle's SDK. This bot allows users to create SCA (Smart Contract Account) wallets on various networks and perform various functions such as sending USDC and checking USDC balances.
 
 <img width="678" alt="telegram_bot" src="./data/telegram_bot.png">
 
